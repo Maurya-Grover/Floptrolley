@@ -1,47 +1,79 @@
-const express = require('express');
-
+const express = require("express");
+const mongoose = require("mongoose");
+const Product = require("../models/productModel");
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
-	res.status(200).json({
-		message: 'Handled GET request to /products route',
+router.get("/", async (req, res, next) => {
+	let products = await Product.find().catch((error) => {
+		console.log(error.message);
+		res.status(500).json({ error: error.message });
 	});
+	if (products.length > 0)
+		res.status(200).json({
+			message: "Handled GET request to /products",
+			products: products,
+		});
+	else if (products.length === 0)
+		res.status(404).json({
+			message: "No Products Found",
+		});
 });
-router.post('/', (req, res, next) => {
-	const product = {
-		name: req.body.productName,
+router.post("/", async (req, res, next) => {
+	const product = await Product.create({
+		name: req.body.name,
 		price: req.body.price,
-	};
+	}).catch((error) => {
+		console.log(error.message);
+		res.status(500).json({ error: error.message });
+	});
+	// the below two lines achieves the same task as the line above. does both create the user and save to the db
+	// const product = new Product({
+	// name: req.body.productName,
+	// price: req.body.price,
+	// });
+	// await product.save();
+	// console.log(product);
+
 	res.status(201).json({
-		message: 'Handled POST request to /products route',
+		message: "Handled POST request to /products",
 		createdProduct: product,
 	});
 });
 
-router.get('/:productId', (req, res, next) => {
+router.get("/:productId", async (req, res, next) => {
 	const id = req.params.productId;
-	if (id === '23') {
-		res.status(200).json({
-			message: 'Received Specific ID',
-			productId: id,
+	let doc = await Product.findById(id).catch((error) => {
+		console.log(error.message);
+		res.status(500).json({ error: error.message });
+	});
+	if (doc) res.status(200).json(doc);
+	else if (doc === null)
+		res.status(404).json({
+			message: "Product " + id + " Not Found in Database",
 		});
-	} else {
-		res.status(200).json({
-			message: 'Welcome ' + id,
-		});
-	}
 });
 
-router.patch('/:productId', (req, res, next) => {
+router.patch("/:productId", (req, res, next) => {
 	res.status(200).json({
-		message: 'Product ' + req.params.productId + ' updated successfully',
+		message: "Product " + req.params.productId + " updated successfully",
 	});
 });
 
-router.delete('/:productId', (req, res, next) => {
-	res.status(200).json({
-		message: 'Product ' + req.params.productId + ' deleted successfully',
+router.delete("/:productId", async (req, res, next) => {
+	const id = req.params.productId;
+	let deletedProduct = await Product.findByIdAndDelete(id).catch((error) => {
+		console.log(error.message);
+		res.status(500).json({ error: error.message });
 	});
+	if (deletedProduct)
+		res.status(200).json({
+			message: "Product " + id + " deleted successfully",
+			product: deletedProduct,
+		});
+	else if (deletedProduct === null)
+		res.status(404).json({
+			message: "Product " + id + " Not Found in Database",
+		});
 });
 
 // res.status() only sets the status on the response on the server side
