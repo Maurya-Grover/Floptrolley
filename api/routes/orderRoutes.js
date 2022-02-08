@@ -6,6 +6,7 @@ const router = express.Router();
 router.get("/", async (req, res, next) => {
 	let orders = await Order.find()
 		.select("_id product quantity")
+		.populate("product", "name")
 		.catch((error) => {
 			res.status(500).json({ error: error.message });
 		});
@@ -68,6 +69,7 @@ router.get("/:orderId", async (req, res, next) => {
 	const id = req.params.orderId;
 	let order = await Order.findById(id)
 		.select("_id product quantity")
+		.populate("product")
 		.catch((error) => {
 			res.status(500).json({ error: error.message });
 		});
@@ -90,13 +92,11 @@ router.get("/:orderId", async (req, res, next) => {
 
 router.patch("/:orderId", async (req, res, next) => {
 	const id = req.params.orderId;
-	let updatedOrder = await Order.findByIdAndUpdate(
-		id,
-		{ $set: req.body },
-		{ new: true }
-	).catch((error) => {
-		res.status(500).json({ error: error.message });
-	});
+	let updatedOrder = await Order.findByIdAndUpdate(id, { $set: req.body }, { new: true }).catch(
+		(error) => {
+			res.status(500).json({ error: error.message });
+		}
+	);
 	if (updatedOrder) {
 		res.status(200).json({
 			message: "Order " + id + "Updated Successfully",
