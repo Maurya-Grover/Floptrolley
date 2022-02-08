@@ -8,7 +8,6 @@ router.get("/", async (req, res, next) => {
 		.catch((error) => {
 			res.status(500).json({ error: error.message });
 		});
-
 	if (products.length > 0) {
 		const response = {
 			count: products.length,
