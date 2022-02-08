@@ -53,10 +53,23 @@ router.get("/:productId", async (req, res, next) => {
 		});
 });
 
-router.patch("/:productId", (req, res, next) => {
-	res.status(200).json({
-		message: "Product " + req.params.productId + " updated successfully",
-	});
+router.patch("/:productId", async (req, res, next) => {
+	const id = req.params.productId;
+	let updatedProduct = await Product.findByIdAndUpdate(id, { $set: req.body }, { new: true }).catch(
+		(error) => {
+			console.log(error.message);
+			res.status(500).json({ error: error.message });
+		}
+	);
+	if (updatedProduct)
+		res.status(200).json({
+			message: "Product " + id + " updated successfully",
+			update: updatedProduct,
+		});
+	else if (updatedProduct === null)
+		res.status(404).json({
+			message: "Product " + id + " Not Found in Database",
+		});
 });
 
 router.delete("/:productId", async (req, res, next) => {
