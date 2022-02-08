@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const Product = require("../models/productModel");
 const router = express.Router();
 
@@ -7,7 +6,6 @@ router.get("/", async (req, res, next) => {
 	let products = await Product.find()
 		.select("name price _id")
 		.catch((error) => {
-			console.log(error.message);
 			res.status(500).json({ error: error.message });
 		});
 
@@ -36,7 +34,6 @@ router.post("/", async (req, res, next) => {
 		name: req.body.name,
 		price: req.body.price,
 	}).catch((error) => {
-		// console.log(error.message);
 		res.status(500).json({ error: error.message });
 	});
 	// the below two lines achieves the same task as the line above. does both create the user and save to the db
@@ -64,7 +61,6 @@ router.get("/:productId", async (req, res, next) => {
 	let doc = await Product.findById(id)
 		.select("name price _id")
 		.catch((error) => {
-			console.log(error.message);
 			res.status(500).json({ error: error.message });
 		});
 	if (doc) {
@@ -90,7 +86,6 @@ router.patch("/:productId", async (req, res, next) => {
 		{ $set: req.body },
 		{ new: true }
 	).catch((error) => {
-		console.log(error.message);
 		res.status(500).json({ error: error.message });
 	});
 	if (updatedProduct)
@@ -110,7 +105,6 @@ router.patch("/:productId", async (req, res, next) => {
 router.delete("/:productId", async (req, res, next) => {
 	const id = req.params.productId;
 	let deletedProduct = await Product.findByIdAndDelete(id).catch((error) => {
-		console.log(error.message);
 		res.status(500).json({ error: error.message });
 	});
 	if (deletedProduct)
