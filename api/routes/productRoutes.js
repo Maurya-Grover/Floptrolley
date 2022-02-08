@@ -1,8 +1,10 @@
 const express = require("express");
+const multer = require("multer"); // used to handle multipart/form-data which 'express.urlencoded' cannot.
 const Product = require("../models/productModel");
 const router = express.Router();
+const upload = multer({ dest: "/uploads/" });
 
-router.get("/", async (req, res, next) => {
+router.get("/", async (_req, res, _next) => {
 	let products = await Product.find()
 		.select("name price _id")
 		.catch((error) => {
@@ -28,7 +30,7 @@ router.get("/", async (req, res, next) => {
 			message: "No Products Found",
 		});
 });
-router.post("/", async (req, res, next) => {
+router.post("/", async (req, res, _next) => {
 	const product = await Product.create({
 		name: req.body.name,
 		price: req.body.price,
@@ -55,7 +57,7 @@ router.post("/", async (req, res, next) => {
 		});
 });
 
-router.get("/:productId", async (req, res, next) => {
+router.get("/:productId", async (req, res, _next) => {
 	const id = req.params.productId;
 	let doc = await Product.findById(id)
 		.select("name price _id")
@@ -78,15 +80,13 @@ router.get("/:productId", async (req, res, next) => {
 		});
 });
 
-router.patch("/:productId", async (req, res, next) => {
+router.patch("/:productId", async (req, res, _next) => {
 	const id = req.params.productId;
-	let updatedProduct = await Product.findByIdAndUpdate(
-		id,
-		{ $set: req.body },
-		{ new: true }
-	).catch((error) => {
-		res.status(500).json({ error: error.message });
-	});
+	let updatedProduct = await Product.findByIdAndUpdate(id, { $set: req.body }, { new: true }).catch(
+		(error) => {
+			res.status(500).json({ error: error.message });
+		}
+	);
 	if (updatedProduct)
 		res.status(200).json({
 			message: "Product " + id + " updated successfully",
@@ -101,7 +101,7 @@ router.patch("/:productId", async (req, res, next) => {
 		});
 });
 
-router.delete("/:productId", async (req, res, next) => {
+router.delete("/:productId", async (req, res, _next) => {
 	const id = req.params.productId;
 	let deletedProduct = await Product.findByIdAndDelete(id).catch((error) => {
 		res.status(500).json({ error: error.message });
