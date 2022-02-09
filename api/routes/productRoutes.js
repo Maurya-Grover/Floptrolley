@@ -2,7 +2,33 @@ const express = require("express");
 const multer = require("multer"); // used to handle multipart/form-data which 'express.urlencoded' cannot.
 const Product = require("../models/productModel");
 const router = express.Router();
-const upload = multer({ dest: "/uploads/" });
+const storage = multer.diskStorage({
+	destination: (req, file, cb) => {
+		cb(null, "./uploads/");
+	},
+	filename: (req, file, cb) => {
+		cb(null, Date.now() + file.originalname);
+	},
+});
+// 5MB file upload limit
+
+const fileFilter = (req, file, cb) => {
+	const allowedFileTypes = ["image/jpeg", "image/jpg", "image/png"];
+	if (allowedFileTypes.includes(file.mimetype)) {
+		// accept a file
+		cb(null, true);
+	}
+	// reject a file
+	else cb(null, false);
+};
+
+const upload = multer({
+	storage: storage,
+	limits: { fileSize: 1024 * 1024 * 5 },
+	fileFilter: fileFilter,
+});
+// adding a slash first in the path makes it an absolute path and will try to create in the root folder
+// const upload = multer({ dest: "/uploads/" });
 
 router.get("/", async (_req, res, _next) => {
 	let products = await Product.find()
@@ -30,7 +56,9 @@ router.get("/", async (_req, res, _next) => {
 			message: "No Products Found",
 		});
 });
-router.post("/", async (req, res, _next) => {
+router.post("/", upload.single("productImage"), async (req, res, _next) => {
+	if (req.file) console.log("File Received");
+	else console.log("File Not Received");
 	const product = await Product.create({
 		name: req.body.name,
 		price: req.body.price,
@@ -82,11 +110,13 @@ router.get("/:productId", async (req, res, _next) => {
 
 router.patch("/:productId", async (req, res, _next) => {
 	const id = req.params.productId;
-	let updatedProduct = await Product.findByIdAndUpdate(id, { $set: req.body }, { new: true }).catch(
-		(error) => {
-			res.status(500).json({ error: error.message });
-		}
-	);
+	let updatedProduct = await Product.findByIdAndUpdate(
+		id,
+		{ $set: req.body },
+		{ new: true }
+	).catch((error) => {
+		res.status(500).json({ error: error.message });
+	});
 	if (updatedProduct)
 		res.status(200).json({
 			message: "Product " + id + " updated successfully",
