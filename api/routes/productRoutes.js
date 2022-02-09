@@ -10,7 +10,6 @@ const storage = multer.diskStorage({
 		cb(null, Date.now() + file.originalname);
 	},
 });
-// 5MB file upload limit
 
 const fileFilter = (req, file, cb) => {
 	const allowedFileTypes = ["image/jpeg", "image/jpg", "image/png"];
@@ -22,13 +21,14 @@ const fileFilter = (req, file, cb) => {
 	else cb(null, false);
 };
 
+// adding a slash first in the path makes it an absolute path and will try to create in the root folder
+// const upload = multer({ dest: "/uploads/" });
+// 5MB file upload limit
 const upload = multer({
 	storage: storage,
 	limits: { fileSize: 1024 * 1024 * 5 },
 	fileFilter: fileFilter,
 });
-// adding a slash first in the path makes it an absolute path and will try to create in the root folder
-// const upload = multer({ dest: "/uploads/" });
 
 router.get("/", async (_req, res, _next) => {
 	let products = await Product.find()
@@ -110,13 +110,11 @@ router.get("/:productId", async (req, res, _next) => {
 
 router.patch("/:productId", async (req, res, _next) => {
 	const id = req.params.productId;
-	let updatedProduct = await Product.findByIdAndUpdate(
-		id,
-		{ $set: req.body },
-		{ new: true }
-	).catch((error) => {
-		res.status(500).json({ error: error.message });
-	});
+	let updatedProduct = await Product.findByIdAndUpdate(id, { $set: req.body }, { new: true }).catch(
+		(error) => {
+			res.status(500).json({ error: error.message });
+		}
+	);
 	if (updatedProduct)
 		res.status(200).json({
 			message: "Product " + id + " updated successfully",
