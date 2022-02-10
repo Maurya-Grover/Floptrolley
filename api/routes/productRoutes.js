@@ -32,7 +32,7 @@ const upload = multer({
 
 router.get("/", async (_req, res, _next) => {
 	let products = await Product.find()
-		.select("name price _id")
+		.select("name price _id image")
 		.catch((error) => {
 			res.status(500).json({ error: error.message });
 		});
@@ -57,11 +57,10 @@ router.get("/", async (_req, res, _next) => {
 		});
 });
 router.post("/", upload.single("productImage"), async (req, res, _next) => {
-	if (req.file) console.log("File Received");
-	else console.log("File Not Received");
 	const product = await Product.create({
 		name: req.body.name,
 		price: req.body.price,
+		image: req.file.path,
 	}).catch((error) => {
 		res.status(500).json({ error: error.message });
 	});
@@ -88,7 +87,7 @@ router.post("/", upload.single("productImage"), async (req, res, _next) => {
 router.get("/:productId", async (req, res, _next) => {
 	const id = req.params.productId;
 	let doc = await Product.findById(id)
-		.select("name price _id")
+		.select("name price _id image")
 		.catch((error) => {
 			res.status(500).json({ error: error.message });
 		});

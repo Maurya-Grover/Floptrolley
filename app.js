@@ -15,6 +15,8 @@ mongoose
 	.catch((e) => console.log("\nFollowing error occurred:\n" + e));
 
 app.use(morgan("dev"));
+// for the particular path /uploads use this handler
+app.use("/uploads", express.static("uploads"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
