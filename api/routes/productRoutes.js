@@ -110,11 +110,13 @@ router.get("/:productId", async (req, res, _next) => {
 
 router.patch("/:productId", async (req, res, _next) => {
 	const id = req.params.productId;
-	let updatedProduct = await Product.findByIdAndUpdate(id, { $set: req.body }, { new: true }).catch(
-		(error) => {
-			res.status(500).json({ error: error.message });
-		}
-	);
+	let updatedProduct = await Product.findByIdAndUpdate(
+		id,
+		{ $set: req.body },
+		{ new: true }
+	).catch((error) => {
+		res.status(500).json({ error: error.message });
+	});
 	if (updatedProduct)
 		res.status(200).json({
 			message: "Product " + id + " updated successfully",
