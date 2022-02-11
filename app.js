@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const app = express();
 const productRoutes = require("./api/routes/productRoutes");
 const orderRoutes = require("./api/routes/orderRoutes");
+const userRoutes = require("./api/routes/userRoutes");
 dotenv.config();
 mongoose
 	.connect(process.env.CONNECTIONSTRING, {
@@ -41,6 +42,7 @@ app.use((req, res, next) => {
 
 app.use("/products", productRoutes);
 app.use("/orders", orderRoutes);
+app.use("/user", userRoutes);
 
 // if the next line is reached(i.e. next middleware is executed) it implies that the routes we have defined weren't able to process the request. Hence, it most likely is an invalid route or request. We will use the following middleware to sort out every request the user makes other than the ones we have defined.
 
