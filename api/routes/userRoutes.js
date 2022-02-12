@@ -13,6 +13,7 @@ router.post("/signup", async (req, res, next) => {
 		res.status(404).json({ message: "Please provide a password" });
 		return;
 	}
+	*/
 	if (inputEmail) {
 		const userExists = await User.find({ email: inputEmail }).catch((error) => {
 			res.status(500).json({ error: error.message });
@@ -25,7 +26,7 @@ router.post("/signup", async (req, res, next) => {
 			});
 			return;
 		}
-	}*/
+	}
 	// NOTE: Hashing the input password
 	const hashedPassword = inputPassword
 		? await bcrypt.hash(inputPassword, 10).catch((error) => {
