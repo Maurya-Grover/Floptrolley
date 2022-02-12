@@ -73,7 +73,7 @@ router.post("/login", async (req, res, next) => {
 			{ email: user.email, userId: user._id },
 			process.env.JWTKEY,
 			{
-				expiresIn: "1h",
+				expiresIn: "7d",
 			}
 		);
 		res.status(200).json({ message: "Auth Successful", token: token });

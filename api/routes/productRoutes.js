@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer"); // used to handle multipart/form-data which 'express.urlencoded' cannot.
 const Product = require("../models/productModel");
+const checkAuth = require("../middleware/checkAuth");
 const router = express.Router();
 const storage = multer.diskStorage({
 	destination: (req, file, cb) => {
@@ -56,33 +57,38 @@ router.get("/", async (_req, res, _next) => {
 			message: "No Products Found",
 		});
 });
-router.post("/", upload.single("productImage"), async (req, res, _next) => {
-	const product = await Product.create({
-		name: req.body.name,
-		price: req.body.price,
-		image: req.file.path,
-	}).catch((error) => {
-		res.status(500).json({ error: error.message });
-	});
-	// the below two lines achieves the same task as the line above. does both create the user and save to the db
-	// const product = new Product({
-	// name: req.body.productName,
-	// price: req.body.price,
-	// });
-	// await product.save();
-	// console.log(product);
-	if (product)
-		res.status(201).json({
-			message: "Created Product Successfully",
-			createdProduct: {
-				...product._doc,
-				request: {
-					type: "GET",
-					url: "http://localhost:3000/products/" + product._id,
-				},
-			},
+router.post(
+	"/",
+	checkAuth,
+	upload.single("productImage"),
+	async (req, res, _next) => {
+		const product = await Product.create({
+			name: req.body.name,
+			price: req.body.price,
+			image: req.file.path,
+		}).catch((error) => {
+			res.status(500).json({ error: error.message });
 		});
-});
+		// the below two lines achieves the same task as the line above. does both create the user and save to the db
+		// const product = new Product({
+		// name: req.body.productName,
+		// price: req.body.price,
+		// });
+		// await product.save();
+		// console.log(product);
+		if (product)
+			res.status(201).json({
+				message: "Created Product Successfully",
+				createdProduct: {
+					...product._doc,
+					request: {
+						type: "GET",
+						url: "http://localhost:3000/products/" + product._id,
+					},
+				},
+			});
+	}
+);
 
 router.get("/:productId", async (req, res, _next) => {
 	const id = req.params.productId;
@@ -107,7 +113,7 @@ router.get("/:productId", async (req, res, _next) => {
 		});
 });
 
-router.patch("/:productId", async (req, res, _next) => {
+router.patch("/:productId", checkAuth, async (req, res, _next) => {
 	const id = req.params.productId;
 	let updatedProduct = await Product.findByIdAndUpdate(
 		id,
@@ -130,7 +136,7 @@ router.patch("/:productId", async (req, res, _next) => {
 		});
 });
 
-router.delete("/:productId", async (req, res, _next) => {
+router.delete("/:productId", checkAuth, async (req, res, _next) => {
 	const id = req.params.productId;
 	let deletedProduct = await Product.findByIdAndDelete(id).catch((error) => {
 		res.status(500).json({ error: error.message });
