@@ -1,8 +1,10 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
 const User = require("../models/userModel");
-const { hash } = require("bcrypt");
 const router = express.Router();
+dotenv.config();
 
 router.post("/signup", async (req, res, next) => {
 	const inputEmail = req.body.email;
@@ -46,6 +48,37 @@ router.post("/signup", async (req, res, next) => {
 			message: "User created",
 			email: user.email,
 		});
+});
+
+router.post("/login", async (req, res, next) => {
+	// NOTE: I can simply look for 1 as I don't allow more than 1 user per email ID to be created
+	// therefore. Each user I get for an email ID will be unique by default
+	const userEmail = req.body.email;
+	const userPassword = req.body.password;
+	const user = await User.findOne({ email: userEmail }).catch((error) => {
+		res.status(500).json({ error: error.message });
+	});
+	if (user === undefined) return;
+	if (user === null) {
+		res.status(401).json({ message: "Auth failed" });
+		return;
+	}
+	const userAuthenticated = userPassword
+		? await bcrypt.compare(userPassword, user.password).catch((error) => {
+				res.status(500).json({ error: error.message });
+		  })
+		: null;
+	if (userAuthenticated === true) {
+		const token = jwt.sign(
+			{ email: user.email, userId: user._id },
+			process.env.JWTKEY,
+			{
+				expiresIn: "1h",
+			}
+		);
+		res.status(200).json({ message: "Auth Successful", token: token });
+	} else if (userAuthenticated === false || userAuthenticated === null)
+		res.status(401).json({ message: "Auth failed" });
 });
 
 router.delete("/:userId", async (req, res, next) => {
